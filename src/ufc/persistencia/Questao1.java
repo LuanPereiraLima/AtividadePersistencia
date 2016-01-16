@@ -7,6 +7,7 @@ import modelo.Livro;
 
 public class Questao1 {
 	public static void main(String[] args) {
+		
 		DAOEditora daoEditora = new DAOEditora();
 		DAOLivro daoLivro = new DAOLivro();
 		

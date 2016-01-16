@@ -146,7 +146,8 @@ public class Questao2 {
 												.append("quantidade_livros", new Document("$sum", 1))
 												.append("soma_total_livros",
 														new Document("$sum",
-																new Document("$multiply", multiplicacao))))
+																new Document("$multiply", multiplicacao)))),
+						Aggregates.sort(new Document("quantidade_livros", -1))
 				));
 		
 

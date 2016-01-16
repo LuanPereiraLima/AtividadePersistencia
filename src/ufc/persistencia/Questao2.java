@@ -8,6 +8,8 @@ import com.mongodb.MongoClient;
 import com.mongodb.client.AggregateIterable;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.model.Aggregates;
+import com.mongodb.client.model.Filters;
 
 import modelo.Editora;
 import modelo.Livro;
@@ -29,7 +31,7 @@ public class Questao2 {
 		DecimalFormat decimalFormat = new DecimalFormat("0.##");
 
 		/*
-		 * QUESTÃO 1 - a) Obter os títulos e valores dos livros que possuem a
+		 * QUESTÃO 2 - a) Obter os títulos e valores dos livros que possuem a
 		 * string “Programação” em seu título;
 		 * 
 		 */
@@ -49,7 +51,7 @@ public class Questao2 {
 			}
 		});
 
-		System.out.println("######### Questão 1 #########");
+		System.out.println("######### Questão 2-a #########");
 		for (Livro livro : livros) {
 			System.out.println(
 					"Título : " + livro.getTitulo() + " | " + "Valor :" + decimalFormat.format(livro.getValor()));
@@ -77,7 +79,7 @@ public class Questao2 {
 			}
 		});
 
-		System.out.println("######### Questão 2 #########");
+		System.out.println("######### Questão 2-b #########");
 
 		for (Livro livro : livros2) {
 			System.out.println(
@@ -87,7 +89,7 @@ public class Questao2 {
 		System.out.println("#############################\n\n\n\n");
 
 		/*
-		 * QUESTÃO 3 - c) Obter os títulos dos livros e os nomes das suas
+		 * QUESTÃO 2 - c) Obter os títulos dos livros e os nomes das suas
 		 * respectivas editoras. Os resultados devem ser exibidos em ordem
 		 * crescente pelo título do livro. Os livros que não possuem editora
 		 * também devem aparecer na listagem;
@@ -114,7 +116,7 @@ public class Questao2 {
 			}
 		});
 
-		System.out.println("######### Questão 3 #########");
+		System.out.println("######### Questão 2-c #########");
 
 		for (Livro livro : livros3) {
 			System.out.println("Título : " + livro.getTitulo() + " | " + "Editora " + livro.getEditora().getNome());
@@ -123,52 +125,57 @@ public class Questao2 {
 		System.out.println("#############################\n\n\n\n");
 
 		/*
-		 * QUESTÃO 4 - d) Obter o nome da editora, a quantidade total de livros
+		 * QUESTÃO 2 - d) Obter o nome da editora, a quantidade total de livros
 		 * por editora e o valor total (qtd_estoque * valor) dos livros para
 		 * cada editora. Somente considerar os livros publicados a partir de
 		 * 2010;
 		 */
 
-		
 		BasicDBList multiplicacao = new BasicDBList();
 		multiplicacao.add("$valor");
 		multiplicacao.add("$qtdEstoque");
-		
-		AggregateIterable<Document> aggregateIterable = mongoDatabase.getCollection("livro")
+
+		AggregateIterable<Document> aggregateIterable = mongoDatabase
+				.getCollection(
+						"livro")
 				.aggregate(asList(
-						new Document("$group", 
-						new Document("_id", new Document(Editora.ID,"$editora.id").append(Editora.NOME, "$editora.nome"))
-						.append("quantidade_livros", new Document("$sum", 1))
-						.append("soma_total_livros", new Document("$sum", new Document("$multiply",multiplicacao))))));
+						Aggregates.match(gte(Livro.ANO_PUBLICACAO, 2010)),
+						new Document("$group",
+								new Document("_id",
+										new Document(Editora.ID, "$editora.id").append(Editora.NOME, "$editora.nome"))
+												.append("quantidade_livros", new Document("$sum", 1))
+												.append("soma_total_livros",
+														new Document("$sum",
+																new Document("$multiply", multiplicacao))))
+				));
+		
 
-
-		System.out.println("######### Questão 4 #########");
+		System.out.println("######### Questão 2-d #########");
 		aggregateIterable.forEach(new Block<Document>() {
 
 			@Override
 			public void apply(Document document) {
 
-				Document infoEditora = (Document)document.get("_id");
+				Document infoEditora = (Document) document.get("_id");
 				System.out.println("Nome da Editora: " + infoEditora.get(Editora.NOME));
 				System.out.println("Quantidade total de livros: " + document.getInteger("quantidade_livros"));
 				System.out.println("Valor total dos livros: " + document.getDouble("soma_total_livros"));
-				System.out.println(" ----- ");	
+				System.out.println(" ----- ");
 			}
 
 		});
 		System.out.println("#############################\n\n\n\n");
 
-		
 		/*
-		 * QUESTÃO 5 -
-		 * e) Obter a quantidade total de livros 
-		 * disponíveis em estoque com valor unitário abaixo de R$ 100,00;
+		 * QUESTÃO 2 - e) Obter a quantidade total de livros disponíveis em
+		 * estoque com valor unitário abaixo de R$ 100,00;
 		 */
-		
-		long quantidade = mongoDatabase.getCollection("livro").count(and(lt(Livro.VALOR, 100), gt(Livro.QTD_ESTOQUE, 0)));
 
-		System.out.println("######### Questão 5 #########");
+		long quantidade = mongoDatabase.getCollection("livro")
+				.count(and(lt(Livro.VALOR, 100), gt(Livro.QTD_ESTOQUE, 0)));
+
+		System.out.println("######### Questão 2-e #########");
 		System.out.println("Quantidade de livros em estoque com valor unitário abaixo de 100 : " + quantidade);
-		
+
 	}
 }
